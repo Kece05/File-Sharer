@@ -28,6 +28,7 @@ func main() {
 	http.HandleFunc("/Active", response)
 	http.HandleFunc("/upload", transferFile)
 	http.HandleFunc("/recieved", recievedFiles)
+	http.HandleFunc("/download", downloadFile)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -271,4 +272,25 @@ func recievedFiles(w http.ResponseWriter, r *http.Request) {
 	//Converting and then send the list of the files back to the html file
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(fileNames)
+}
+
+// Downloads specified file
+func downloadFile(w http.ResponseWriter, r *http.Request) {
+	fileName := r.URL.Query().Get("file")
+	if fileName == "" {
+		http.Error(w, "File name is required", http.StatusBadRequest)
+		return
+	}
+
+	folder := "Received/"
+	filePath := folder + fileName
+
+	//Checks to see if the file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
+	http.ServeFile(w, r, filePath)
 }
