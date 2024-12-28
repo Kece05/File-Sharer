@@ -29,7 +29,6 @@ This application facilitates file transfer and management using a combination of
 ### Prerequisites
 1. Install Go.
 2. Install a C++ compiler (e.g., `g++`).
-3. Ensure the required ports (e.g., 8080) are available.
 
 ### Installation
 1. Clone the repository:
