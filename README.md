@@ -57,8 +57,9 @@ At startup, the application checks for the `Upload` and `Received` folders:
    ```
 2. Open a browser and navigate to:
    ```
-http://localhost:8080/
+   http://localhost:8080/
    ```
+
 3. Upload files through the interface or view/download received files.
 
 ### File Transfer
@@ -72,8 +73,8 @@ http://localhost:8080/
 
 ## API Endpoints
 
-### `GET /`
-Serves the main HTML page.
+### `GET /recieved`
+Handles file recieved and displays file from the transfer.
 
 ### `POST /upload`
 Handles file uploads and initiates file transfer.
