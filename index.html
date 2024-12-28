@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P File Sharing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #007BFF;
+        }
+
+        header p {
+            margin: 5px 0 0;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        section {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            color: #007BFF;
+            margin-bottom: 10px;
+        }
+
+        /* Buttons */
+        .peer-btn, .upload-btn {
+            display: inline-block;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .peer-btn:hover, .upload-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .peer-btn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+
+        .file-input {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .file-textbox {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #333;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>P2P File Sharing</h1>
+            <p>Share files securely with your peers over the local network.</p>
+        </header>
+
+        <section class="peer-selection">
+            <h2>Scan and Select a Peer</h2>
+            <div id="Scan">
+                <button id="scanPeers" class="peer-btn">Scan for Peers</button>
+                <pre id="output"></pre>
+            </div>
+        </section>
+
+        <section class="file-upload">
+            <h2>Upload File</h2>
+            <form id="uploadForm" action="http://127.0.0.1:8080/upload" method="POST" enctype="multipart/form-data">
+                <label for="file">Choose a file:</label>
+                <input type="file" id="file" name="file" class="file-input" required>
+                <label for="fileDescription">Enter the Desired IP:</label>
+                <input type="text" id="fileDescription" name="desiredIP" class="file-textbox" placeholder="Enter the Desired IP" required>
+                <button id="sendButton" type="submit" class="upload-btn">Send File</button>
+            </form>
+        </section>      
+
+        <section class="files-recieved">
+            <h2>Recieved Files</h2>
+            <div id="pull-files">
+                <button id="check" class="upload-btn">Check For Recieved Files</button>
+                <pre id="files-output"></pre>
+            </div>
+        </section>
+
+        <footer>
+            <p>Powered by P2P File Sharing System</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("scanPeers").addEventListener("click", () => {
+            const scanButton = document.getElementById("scanPeers");
+            const output = document.getElementById("output");
+
+            scanButton.disabled = true;
+            scanButton.innerText = "Scanning... Please wait...";
+            output.innerText = "Loading results...";
+
+            fetch("/scanPeers")
+                .then(response => response.text())
+                .then(data => {
+                    output.innerText = data;
+                    scanButton.disabled = false;
+                    scanButton.innerText = "Scan for Peers";
+                })
+                .catch(error => {
+                    output.innerText = "Error: " + error;
+                    scanButton.disabled = false;
+                    scanButton.innerText = "Scan for Peers";
+                });
+        });
+
+        document.getElementById("sendButton").addEventListener("click", (event) => {
+            event.preventDefault();
+
+            const fileInput = document.getElementById("file");
+            const fileDescription = document.getElementById("fileDescription");
+            const formData = new FormData();
+
+            //Adding to the file to form data if there's an input
+            if (fileInput.files.length > 0) {
+                //Adding the input filing into the formData
+                formData.append("file", fileInput.files[0]);
+            } else {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            //Adding the desired ip to form data if there's an input
+            if (fileDescription.value.length > 0) {
+                //Adding the input filing into the formData
+                formData.append("desiredIP", fileDescription.value);
+            } else {
+                alert("Please enter the desired ip.");
+                return;
+            }
+
+            //Send the POST request
+            fetch("http://localhost:8080/upload", {
+                method: "POST",
+                body: formData,
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        alert("Sent the File to: " + fileDescription.value);
+                    } else {
+                        throw new Error("Failed to upload file.");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    alert("Unable to send file.");
+                });
+        });
+
+        document.getElementById("check").addEventListener("click", () => {
+            fetch('/recieved')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch file list.");
+                    }
+                    return response.json();
+                })
+                .then(files => {
+                    const outputElement = document.getElementById("files-output");
+                    outputElement.innerHTML = ""; 
+
+                    if (files === null) {
+                        outputElement.textContent = "No files received.";
+                    } else {
+                        files.forEach(file => {
+                            const link = document.createElement("a");
+                            link.href = `/download?file=${encodeURIComponent(file)}`;
+                            link.textContent = file;
+                            link.download = file;
+                            link.style.display = "block";
+                            outputElement.appendChild(link);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching file list:", error);
+                    document.getElementById("files-output").textContent = "Error loading files.";
+                });
+        }); 
+    </script>
+</body>
+</html>
